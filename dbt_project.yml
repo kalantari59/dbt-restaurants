@@ -1,0 +1,44 @@
+name: toronto_restaurants_dbt
+version: "1.0.0"
+config-version: 2
+
+profile: toronto_restaurants
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+docs-paths: ["docs"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+on-run-start:
+  - "create extension if not exists pgcrypto"
+  - "create extension if not exists pg_trgm"
+  - "create extension if not exists \"uuid-ossp\""
+
+models:
+  toronto_restaurants_dbt:
+    bronze:
+      +materialized: table
+    silver:
+      +materialized: table
+    gold:
+      +materialized: table
+
+seeds:
+  toronto_restaurants_dbt:
+    +quote_columns: true
+    trt_rest:
+      +column_types:
+        "Category": varchar
+        "Restaurant Address": text
+        "Restaurant Name": varchar
+        "Restaurant Phone": varchar
+        "Restaurant Price Range": varchar
+        "Restaurant Website": text
+        "Restaurant Yelp URL": text
+        "Restaurant Latitude": numeric
+        "Restaurant Longitude": numeric

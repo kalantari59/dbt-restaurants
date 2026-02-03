@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>راهنمای سریع dbt: seed / run / test</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; line-height: 1.8; text-align: right; }
+    h1, h2 { margin: 0.2rem 0 0.6rem; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; direction: ltr; text-align: left; }
+    pre { background: #f7f7f8; border: 1px solid #eee; border-radius: 10px; padding: 12px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 0; }
+    th, td { border: 1px solid #e5e5e5; padding: 10px; vertical-align: top; }
+    th { background: #fafafa; }
+    .muted { color: #666; font-size: 0.95rem; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #ddd; background: #fff; font-size: 0.9rem; }
+    .row { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 900px) {
+      .row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <h1>راهنمای سریع dbt: <span class="pill">seed</span> / <span class="pill">run</span> / <span class="pill">test</span></h1>
+  <p class="muted">این صفحه توضیح می‌دهد سه دستور اصلی dbt دقیقاً چه کاری انجام می‌دهند و معمولاً با چه ترتیبی اجرا می‌شوند.</p>
+
+  <div class="row">
+    <div class="card">
+      <h2>1) dbt seed</h2>
+      <p><strong>کارش چیست؟</strong> فایل‌های CSV داخل پوشه <code>seeds/</code> را به <strong>جدول واقعی</strong> در دیتابیس تبدیل می‌کند.</p>
+      <p><strong>کی استفاده می‌شود؟</strong> برای داده‌های ثابت مثل lookup/mapping، داده‌های تست، یا mock data.</p>
+      <pre><code>dbt seed</code></pre>
+      <p class="muted">نکته: <code>seed</code> مدل (model) نیست و transform انجام نمی‌دهد؛ فقط load می‌کند.</p>
+    </div>
+
+    <div class="card">
+      <h2>2) dbt run</h2>
+      <p><strong>کارش چیست؟</strong> مدل‌های SQL داخل پوشه <code>models/</code> را اجرا می‌کند و طبق <code>ref()</code> ترتیب اجرا را رعایت می‌کند؛ سپس <strong>table/view</strong> می‌سازد.</p>
+      <pre><code>dbt run
+dbt run --select silver_restaurants_clean</code></pre>
+      <p class="muted">اگر مدل <code>materialized='table'</code> باشد جدول می‌سازد؛ اگر <code>view</code> باشد ویو می‌سازد.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3) dbt test</h2>
+    <p><strong>کارش چیست؟</strong> تست‌های کیفیت داده را اجرا می‌کند. <strong>داده را تغییر نمی‌دهد</strong>؛ فقط pass/fail می‌دهد.</p>
+    <p><strong>تست‌های رایج:</strong> <code>not_null</code>, <code>unique</code>, <code>accepted_values</code>, <code>relationships</code></p>
+    <pre><code>dbt test
+dbt test --select silver_restaurants_clean</code></pre>
+  </div>
+
+  <div class="card">
+    <h2>ترتیب استاندارد اجرا</h2>
+    <p>در بیشتر پروژه‌ها این ترتیب پیشنهاد می‌شود:</p>
+    <pre><code>dbt seed
+dbt run
+dbt test</code></pre>
+    <ul>
+      <li><strong>seed</strong>: داده‌های پایه/ثابت وارد دیتابیس شوند</li>
+      <li><strong>run</strong>: مدل‌ها ساخته شوند</li>
+      <li><strong>test</strong>: خروجی‌ها از نظر کیفیت و قواعد داده validate شوند</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>مقایسه خیلی خلاصه</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>دستور</th>
+          <th>جدول/ویو می‌سازد؟</th>
+          <th>Transform انجام می‌دهد؟</th>
+          <th>دیتابیس را تغییر می‌دهد؟</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>dbt seed</code></td>
+          <td>بله (Table از CSV)</td>
+          <td>خیر</td>
+          <td>بله</td>
+        </tr>
+        <tr>
+          <td><code>dbt run</code></td>
+          <td>بله (Table/View از مدل)</td>
+          <td>بله</td>
+          <td>بله</td>
+        </tr>
+        <tr>
+          <td><code>dbt test</code></td>
+          <td>خیر</td>
+          <td>خیر</td>
+          <td>خیر (فقط بررسی)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="muted">اگر خواستی، می‌توانم همین راهنما را با مثال‌های پروژه‌ی خودت (نام مدل‌ها، نام seedها، و تست‌های پیشنهادی) شخصی‌سازی کنم.</p>
+</body>
+</html>

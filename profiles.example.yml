@@ -1,0 +1,13 @@
+toronto_restaurants:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: postgres
+      password: postgres
+      dbname: restaurants_dbt
+      schema: public
+      threads: 4
+      keepalives_idle: 0

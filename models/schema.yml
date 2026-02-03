@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: bronze_restaurants_raw
+    columns:
+      - name: raw_id
+        tests:
+          - unique
+          - not_null
+      - name: restaurant_name
+        tests:
+          - not_null
+
+  - name: silver_restaurants_clean
+    columns:
+      - name: raw_id
+        tests:
+          - unique
+          - not_null
+      - name: name_clean
+        tests:
+          - not_null
+
+  - name: silver_restaurants_golden
+    columns:
+      - name: restaurant_id
+        tests:
+          - unique
+          - not_null
+      - name: canonical_name
+        tests:
+          - not_null
+
+  - name: silver_restaurants_map_raw_to_golden
+    columns:
+      - name: raw_id
+        tests:
+          - unique
+          - not_null
+      - name: restaurant_id
+        tests:
+          - not_null
+
+  - name: silver_restaurants_enriched
+    columns:
+      - name: restaurant_id
+        tests:
+          - unique
+          - not_null
+
+  - name: enrichment_status
+    columns:
+      - name: restaurant_id
+        tests:
+          - unique
+          - not_null
+
+  - name: gold_restaurant_dim
+    columns:
+      - name: restaurant_id
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+
+  - name: gold_quality_kpi
+    columns:
+      - name: kpi_date
+        tests:
+          - not_null
