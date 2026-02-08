@@ -23,6 +23,45 @@ base as (
         category
     from src
 ),
+address_enriched as (
+    select
+        b.*,
+        -- 1) Full Canadian postal code: "M5V 3A8" or "M5V3A8" -> normalize to "M5V 3A8"
+        case
+            when substring(upper(b.address_clean) from '[A-Z]\d[A-Z]\s?\d[A-Z]\d') is not null then
+                left(
+                    regexp_replace(
+                        substring(upper(b.address_clean) from '[A-Z]\d[A-Z]\s?\d[A-Z]\d'),
+                        '\s+', '', 'g'
+                    ),
+                    3
+                )
+                || ' ' ||
+                right(
+                    regexp_replace(
+                        substring(upper(b.address_clean) from '[A-Z]\d[A-Z]\s?\d[A-Z]\d'),
+                        '\s+', '', 'g'
+                    ),
+                    3
+                )
+            else null
+        end as full_postal_code,
+        -- 2) FSA (first 3 chars): prefer from full code if present; otherwise find standalone FSA
+        case
+            when substring(upper(b.address_clean) from '[A-Z]\d[A-Z]\s?\d[A-Z]\d') is not null then
+                left(
+                    regexp_replace(
+                        substring(upper(b.address_clean) from '[A-Z]\d[A-Z]\s?\d[A-Z]\d'),
+                        '\s+', '', 'g'
+                    ),
+                    3
+                )
+            when substring(upper(b.address_clean) from '[A-Z]\d[A-Z]') is not null then
+                substring(upper(b.address_clean) from '[A-Z]\d[A-Z]')
+            else null
+        end as fsa
+    from base b
+),
 phones as (
     select
         *,
@@ -38,7 +77,7 @@ phones as (
             when length(phone_digits) = 11 and left(phone_digits, 1) = '1' then true
             else false
         end as phone_valid
-    from base
+    from address_enriched
 ),
 -- Price types :
 -- 1. Under $10
@@ -96,6 +135,8 @@ select
     clean_updated_at,
     name_clean,
     address_clean,
+    full_postal_code,
+    fsa,
     phone_e164,
     phone_valid,
     'CA' as phone_country,
